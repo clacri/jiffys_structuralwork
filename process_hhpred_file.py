@@ -17,7 +17,9 @@ if len(sys.argv)==1:
 elif len(sys.argv)>=2: # I migth be interested in adding more parameters
     name_file=sys.argv[1]
 
-min_ident=0  # minimum of sequence identity required to be taken into account
+min_ident=0.1  # minimum of sequence identity required to be taken into account
+
+wd=os.getcwd()
 
 hhr=open(name_file).read()
 hsearch=iotbx.bioinformatics.hhsearch_parser(output=hhr)
@@ -26,6 +28,9 @@ count_hit=0
 table_file=open("table_hits.txt",'w')
 table_file.write('PDB\tIdentity\tLength\tChain\tExperiment\tResolution\tCell\n')
 del table_file
+
+
+list_models_processed=[]
 
 for hit in hsearch.hits():
   try:
@@ -38,6 +43,15 @@ for hit in hsearch.hits():
 	  id_pdb=hit.identifier
 	  chain_pdb=hit.chain
 	  aln=hit.alignment
+          # First of all check that evalue is significative at all
+          p = subprocess.Popen('grep '+id_pdb + ' ' + name_file, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,cwd=wd)
+          complete_output, errors = p.communicate()
+          line_values=complete_output.split("\n")[0]
+          evalue_string=line_values[41:48]
+          evalue=float(evalue_string)
+          if evalue>1:
+              print '\n e-value for this alignement is larger than 1, this PDB will not be further processed'
+              continue 
 	  #print '\nAlignement',aln
 	  #print '\nTarget aligned sequence',aln.alignments[0]
 	  target_aln=aln.alignments[0]
@@ -54,6 +68,12 @@ for hit in hsearch.hits():
 	  length_aln=aln.length()
 	  #print '\nAlignment multiplicity',aln.multiplicity() 
 	  aln_multiplicity=aln.multiplicity()
+          # Check if this model and chain are already downloaded
+          if id_pdb+chain_pdb in list_models_processed:
+              print 'This model is already processed ',id_pdb+chain_pdb
+              continue
+          else:
+              list_models_processed.append(id_pdb+chain_pdb)
 	  # Fetch the pdb of the hit and do some modifications according to the alignement
 	  hit_folder=os.path.join(os.getcwd(),'hhpred_hit_'+str(count_hit))
 	  os.makedirs(hit_folder)   
@@ -77,10 +97,8 @@ for hit in hsearch.hits():
 	  table_file.write(str(id_pdb)+'\t'+str(identity)+'\t'+str(length_aln)+'\t'+str(chain_pdb)+'\t'+str(experimental_method)+'\t'+str(resolution)+'\t'+str(cell)+'\n')
 	  del table_file
   except:
-  	print 'There was some error while trying to fetch this pdb and its information'
-        print 'Error is:' 
-        traceback.print_exc()
-        print 'Continuing with the next pdb from the list'
+  	print '\nThere was some error while trying to fetch this pdb and its information'
+        print 'Continuing with the next pdb from the list\n'
   	continue
 
 
