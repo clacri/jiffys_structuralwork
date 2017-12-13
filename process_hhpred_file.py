@@ -26,7 +26,8 @@ hsearch=iotbx.bioinformatics.hhsearch_parser(output=hhr)
 count_hit=0
 # Prepare a table to fill with the information from all the hits
 table_file=open("table_hits.txt",'w')
-table_file.write('PDB\tIdentity\tLength\tChain\tExperiment\tResolution\tCell\n')
+table_file.write('%-4s %-10s %-15s %-15s %-10s %-25s %-10s %-10s %-10s %-10s %-10s %-10s\n' % ('PDB','Identity','E-value','Align lenght','PDB chain','Experimental method','A','B','C','Alpha','Beta','Gamma'))
+
 del table_file
 
 
@@ -60,7 +61,7 @@ for hit in hsearch.hits():
 	  #print '\nNumber of identities',aln.identity_count()
 	  nid=aln.identity_count()
 	  #print '\nFraction identities',aln.identity_fraction()
-	  identity=aln.identity_fraction()
+	  identity=round(aln.identity_fraction(),3)
 	  if identity<min_ident:
 	  	print '\n Identity is less than ',min_ident,' this PDB will not be further processed'
 	  	continue
@@ -94,7 +95,7 @@ for hit in hsearch.hits():
 	      cell=None
 	  # Write the information in the table
 	  table_file=open("table_hits.txt",'a')
-	  table_file.write(str(id_pdb)+'\t'+str(identity)+'\t'+str(length_aln)+'\t'+str(chain_pdb)+'\t'+str(experimental_method)+'\t'+str(resolution)+'\t'+str(cell)+'\n')
+          table_file.write('%-4s %-10s %-15s %-15s %-10s %-25s %-10s %-10s %-10s %-10s %-10s %-10s\n' % (id_pdb,identity,evalue,length_aln,chain_pdb,experimental_method,cell['a'],cell['b'],cell['c'],cell['alpha'],cell['beta'],cell['gamma']))
 	  del table_file
   except:
   	print '\nThere was some error while trying to fetch this pdb and its information'
