@@ -35,9 +35,9 @@ list_models_processed=[]
 
 for hit in hsearch.hits():
   try:
-	  print "*************************************************************************************************************************"
-	  print "\n\n\nProcessing...\n"
-	  print hit.annotation
+	  print("*************************************************************************************************************************")
+	  print("\n\n\nProcessing...\n")
+	  print(hit.annotation)
 	  count_hit=count_hit+1
 
 	  # Get alignement information
